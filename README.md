@@ -1,3 +1,5 @@
+# V10-PHP Lightweight PHP Framework
+
 INSTALLATION
 
 If you have downloaded v10php, just unzip the file v10php.zip into your web server's document root, and point your browser to http://example.com/v10php where 'example.com' is your server's address.  
