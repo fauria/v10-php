@@ -6,6 +6,11 @@ define('default_method', 'index');
 define('base_host', 'http://localhost:8888/');
 define('base_folder', implode(array_slice(array_reverse(preg_split('/\//', $_SERVER['PHP_SELF'], 0, PREG_SPLIT_NO_EMPTY)),1, 1)).'/');
 
+define('mongodb_host', 'localhost');
+define('default_database', 'test');
+define('default_collection', 'items');
+define('array_mode', TRUE);
+
 define('mysql_host', 'localhost');
 define('mysql_database', 'test');
 define('mysql_user', 'root');
