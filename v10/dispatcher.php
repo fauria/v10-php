@@ -105,6 +105,7 @@ class Dispatcher
 		}
 		echo '<h2>If you dont want to display this tables, set "<i>use_v10_error_handler = false</i>" on file "<i>'.base_folder.'v10/config.php</i>".</h2>';
 		echo '</div></body></html>';
+		throw new ErrorException($errstr, 0, $errno, $errfile, $errline);
 				
 	}
 	

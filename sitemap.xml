@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns1:urlset xmlns:ns1="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<ns1:url>
+		<ns1:loc>http://www.example.com/</ns1:loc>
+		<ns1:lastmod>1970-01-01</ns1:lastmod>
+		<ns1:changefreq>yearly</ns1:changefreq>
+		<ns1:priority>1</ns1:priority>
+	</ns1:url>
+</ns1:urlset>

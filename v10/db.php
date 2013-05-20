@@ -70,6 +70,10 @@ class Db
 	
 	public function get_binary($id)
 	{
+		if(gettype($id) != 'object')
+		{
+			$id = new MongoId($id);
+		}
 		$finfo = new finfo;
 		if(@$data = $this->grid->findOne(array("_id" => $id))->getBytes())
 		{
@@ -84,6 +88,10 @@ class Db
 	
 	public function get_attribute($attr, $id)
 	{
+		if(gettype($id) != 'object')
+		{
+			$id = new MongoId($id);
+		}
 		$data = $this->collection->find(array("_id" => $id))->getNext();
 		if(isset($data[$attr]))
 		{
@@ -116,7 +124,15 @@ class Db
 	
 	public function delete($id)
 	{
-		return $this->collection->remove(array("_id" => new MongoId($id)), array('safe' => true));
+		if(gettype($id) == 'object')
+		{
+			return $this->collection->remove(array("_id" => $id),  array('safe' => true));	
+		}
+		else
+		{
+			return $this->collection->remove(array("_id" => new MongoId($id)), array('safe' => true));
+		}
+		
 	}
 	
 	public function upload_file($file, $metadata = array('metadata' => array()))

@@ -1,8 +1,24 @@
 <?php
 
-require_once('v10/config.php');
-require_once('v10/v10.php');
-require_once('v10/dispatcher.php');
+include 'v10/config.php';
+
+switch(load_v10_functions)
+{
+	case 'all':
+		foreach (glob("v10/functions/*.php") as $ff)
+		{
+    		include $ff;
+		}
+		break;
+	default:
+		foreach(explode(',', load_v10_functions) as $ff)
+		{
+			include 'v10/functions/'.$ff.'.php';
+		}
+		break;
+}
+
+include 'v10/dispatcher.php';
 
 class V10 extends Dispatcher
 {
@@ -50,7 +66,5 @@ class V10 extends Dispatcher
 $v10 = new V10();
 
 $v10->run();
-
-
 
 ?>

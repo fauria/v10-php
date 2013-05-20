@@ -11,28 +11,6 @@ CONFIGURATION
 	v10/config.php
 	  	You can create or modify existing framework wide constants in this file.
 
-CONTROLLERS
-	Routing
-	Creating a controller
-	Loading a controller
-	The Main Controller
-	The Ajax Controller
-	Sessions
-	
-VIEWS
-	Creating a view
-	Loading a view
-	Passing data to a view
-	Views within views	
+SETUP
 
-MODELS
-	Creating a model
-	Refer to RedBean documentation
-	
-FUNCTIONS
-	dump
-	...
-	
-TOOLS
-	SQLBuddy
-	PHPMoAdmin
+See homepage for details.
