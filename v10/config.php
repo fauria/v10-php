@@ -6,6 +6,8 @@ define('default_method', 'index');
 define('base_host', 'http://'.$_SERVER['HTTP_HOST'].'/');
 define('base_folder', implode(array_slice(array_reverse(preg_split('/\//', $_SERVER['PHP_SELF'], 0, PREG_SPLIT_NO_EMPTY)),1, 1)).'/');
 
+define('main_email', 'example@example.com');
+
 define('mongodb_host', 'localhost');
 define('mongodb_port', 27017);
 define('default_database', 'test');
@@ -29,5 +31,12 @@ define('load_v10_functions', implode(',', array('all')));
 define('with_accents', 'ŠŒŽšœžŸ¥µÀÁÂÃÄÅÆÇÈÉÊËẼÌÍÎÏĨÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëẽìíîïĩðñòóôõöøùúûüýÿ');
 define('without_accents', 'SOZsozYYuAAAAAAACEEEEEIIIIIDNOOOOOOUUUUYsaaaaaaaceeeeeiiiiionoooooouuuuyy');
 
-define('base_url', base_host.base_folder);
+if(base_folder != '/')
+{
+	define('base_url', base_host.base_folder);
+}
+else
+{
+	define('base_url', base_host);
+}
 ?>

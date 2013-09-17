@@ -37,7 +37,7 @@ function load_controller($controller, $folder = null)
 	}
 }
 
-function load_view($view, $data = array()) 
+function load_view($view, $data = array(), $dump = FALSE) 
 {
 	$path = 'views/'.$view.'.php';
 	if(file_exists($path))
@@ -45,14 +45,48 @@ function load_view($view, $data = array())
 		if(count($data) > 0)
 		{
 			extract($data);
-		}		
-		include($path);
+		}			
+
+		if($dump)
+		{			
+			ob_start();
+			require($path);
+			return ob_get_clean();
+		}
+		else
+		{
+			include($path);	
+		}
+		
 	}
 	else
 	{
 		trigger_error("View $view not found.", E_USER_WARNING);
 		return false;
 	}	
+}
+
+function url_to_assoc()
+{
+	$assoc = array();
+	$request = explode('/', $_SERVER['REQUEST_URI']);			
+	array_shift($request);		
+	foreach($request as $index => $segment)
+	{			
+		$folder = preg_replace('/\//', '', base_folder);
+		if($segment == 'index.php' || $segment == $folder || $segment == '')
+		{
+			unset($request[$index]);
+		}
+	}
+	array_shift($request);
+	$odd = array();
+	$even = array();	
+
+	$both = array(&$even, &$odd);
+	array_walk($request, function($v, $k) use ($both) { $both[$k % 2][] = urldecode($v); });
+	if(count($odd) < count($even)) array_push($odd, NULL);	
+	return array_combine($even, $odd);
 }
 
 function dump_view($view, $data = array())
@@ -183,33 +217,78 @@ function current_request()
 	return $request;
 }
 
-function xss_clean($data)
+function strtolower_utf8($cadena)
 {
-	$data = str_replace(array('&amp;','&lt;','&gt;'), array('&amp;amp;','&amp;lt;','&amp;gt;'), $data);
-	$data = preg_replace('/(&#*\w+)[\x00-\x20]+;/u', '$1;', $data);
-	$data = preg_replace('/(&#x*[0-9A-F]+);*/iu', '$1;', $data);
-	$data = html_entity_decode($data, ENT_COMPAT, 'UTF-8');
+  $convertir_a = array(
+       "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u",
+       "v", "w", "x", "y", "z", "à", "á", "â", "ã", "ä", "å", "æ", "ç", "è", "é", "ê", "ë","ę", "ì", "í", "î", "ï",
+       "ð", "ñ", "ò", "ó", "ô", "õ", "ö", "ø", "ù", "ú", "û", "ü", "ý", "а", "б", "в", "г", "д", "е", "ё", "ж",
+       "з", "и", "й", "к", "л", "м", "н", "о", "п", "р", "с", "т", "у", "ф", "х", "ц", "ч", "ш", "щ", "ъ", "ы",
+       "ь", "э", "ю", "я"
+  );
+  $convertir_de = array(
+       "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U",
+       "V", "W", "X", "Y", "Z", "À", "Á", "Â", "Ã", "Ä", "Å", "Æ", "Ç", "È", "É", "Ê", "Ë","Ę", "Ì", "Í", "Î", "Ï",
+       "Ð", "Ñ", "Ò", "Ó", "Ô", "Õ", "Ö", "Ø", "Ù", "Ú", "Û", "Ü", "Ý", "А", "Б", "В", "Г", "Д", "Е", "Ё", "Ж",
+       "З", "И", "Й", "К", "Л", "М", "Н", "О", "П", "Р", "С", "Т", "У", "Ф", "Х", "Ц", "Ч", "Ш", "Щ", "Ъ", "Ъ",
+       "Ь", "Э", "Ю", "Я"
+  );
+  return str_replace($convertir_de, $convertir_a, $cadena);
+}
 
-	$data = preg_replace('#(<[^>]+?[\x00-\x20"\'])(?:on|xmlns)[^>]*+>#iu', '$1>', $data);
+function strtoupper_utf8($cadena)
+{
+  $convertir_de = array(
+       "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u",
+       "v", "w", "x", "y", "z", "à", "á", "â", "ã", "ä", "å", "æ", "ç", "è", "é", "ê", "ë","ę", "ì", "í", "î", "ï",
+       "ð", "ñ", "ò", "ó", "ô", "õ", "ö", "ø", "ù", "ú", "û", "ü", "ý", "а", "б", "в", "г", "д", "е", "ё", "ж",
+       "з", "и", "й", "к", "л", "м", "н", "о", "п", "р", "с", "т", "у", "ф", "х", "ц", "ч", "ш", "щ", "ъ", "ы",
+       "ь", "э", "ю", "я"
+  );
+  $convertir_a = array(
+       "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U",
+       "V", "W", "X", "Y", "Z", "À", "Á", "Â", "Ã", "Ä", "Å", "Æ", "Ç", "È", "É", "Ê", "Ë","Ę", "Ì", "Í", "Î", "Ï",
+       "Ð", "Ñ", "Ò", "Ó", "Ô", "Õ", "Ö", "Ø", "Ù", "Ú", "Û", "Ü", "Ý", "А", "Б", "В", "Г", "Д", "Е", "Ё", "Ж",
+       "З", "И", "Й", "К", "Л", "М", "Н", "О", "П", "Р", "С", "Т", "У", "Ф", "Х", "Ц", "Ч", "Ш", "Щ", "Ъ", "Ъ",
+       "Ь", "Э", "Ю", "Я"
+  );
+  return str_replace($convertir_de, $convertir_a, $cadena);
+}
 
-	$data = preg_replace('#([a-z]*)[\x00-\x20]*=[\x00-\x20]*([`\'"]*)[\x00-\x20]*j[\x00-\x20]*a[\x00-\x20]*v[\x00-\x20]*a[\x00-\x20]*s[\x00-\x20]*c[\x00-\x20]*r[\x00-\x20]*i[\x00-\x20]*p[\x00-\x20]*t[\x00-\x20]*:#iu', '$1=$2nojavascript...', $data);
-	$data = preg_replace('#([a-z]*)[\x00-\x20]*=([\'"]*)[\x00-\x20]*v[\x00-\x20]*b[\x00-\x20]*s[\x00-\x20]*c[\x00-\x20]*r[\x00-\x20]*i[\x00-\x20]*p[\x00-\x20]*t[\x00-\x20]*:#iu', '$1=$2novbscript...', $data);
-	$data = preg_replace('#([a-z]*)[\x00-\x20]*=([\'"]*)[\x00-\x20]*-moz-binding[\x00-\x20]*:#u', '$1=$2nomozbinding...', $data);
+function sanitize($array)
+{
+	array_walk($_POST, function(&$n) { 
+  		$n = xss_clean($n);
+	}); 
+}
 
-	$data = preg_replace('#(<[^>]+?)style[\x00-\x20]*=[\x00-\x20]*[`\'"]*.*?expression[\x00-\x20]*\([^>]*+>#i', '$1>', $data);
-	$data = preg_replace('#(<[^>]+?)style[\x00-\x20]*=[\x00-\x20]*[`\'"]*.*?behaviour[\x00-\x20]*\([^>]*+>#i', '$1>', $data);
-	$data = preg_replace('#(<[^>]+?)style[\x00-\x20]*=[\x00-\x20]*[`\'"]*.*?s[\x00-\x20]*c[\x00-\x20]*r[\x00-\x20]*i[\x00-\x20]*p[\x00-\x20]*t[\x00-\x20]*:*[^>]*+>#iu', '$1>', $data);
+function xss_clean($line)
+{
+	$line = str_replace(array('&amp;','&lt;','&gt;'), array('&amp;amp;','&amp;lt;','&amp;gt;'), $line);
+	$line = preg_replace('/(&#*\w+)[\x00-\x20]+;/u', '$1;', $line);
+	$line = preg_replace('/(&#x*[0-9A-F]+);*/iu', '$1;', $line);
+	$line = html_entity_decode($line, ENT_COMPAT, 'UTF-8');
 
-	$data = preg_replace('#</*\w+:\w[^>]*+>#i', '', $data);
+	$line = preg_replace('#(<[^>]+?[\x00-\x20"\'])(?:on|xmlns)[^>]*+>#iu', '$1>', $line);
+
+	$line = preg_replace('#([a-z]*)[\x00-\x20]*=[\x00-\x20]*([`\'"]*)[\x00-\x20]*j[\x00-\x20]*a[\x00-\x20]*v[\x00-\x20]*a[\x00-\x20]*s[\x00-\x20]*c[\x00-\x20]*r[\x00-\x20]*i[\x00-\x20]*p[\x00-\x20]*t[\x00-\x20]*:#iu', '$1=$2nojavascript...', $line);
+	$line = preg_replace('#([a-z]*)[\x00-\x20]*=([\'"]*)[\x00-\x20]*v[\x00-\x20]*b[\x00-\x20]*s[\x00-\x20]*c[\x00-\x20]*r[\x00-\x20]*i[\x00-\x20]*p[\x00-\x20]*t[\x00-\x20]*:#iu', '$1=$2novbscript...', $line);
+	$line = preg_replace('#([a-z]*)[\x00-\x20]*=([\'"]*)[\x00-\x20]*-moz-binding[\x00-\x20]*:#u', '$1=$2nomozbinding...', $line);
+
+	$line = preg_replace('#(<[^>]+?)style[\x00-\x20]*=[\x00-\x20]*[`\'"]*.*?expression[\x00-\x20]*\([^>]*+>#i', '$1>', $line);
+	$line = preg_replace('#(<[^>]+?)style[\x00-\x20]*=[\x00-\x20]*[`\'"]*.*?behaviour[\x00-\x20]*\([^>]*+>#i', '$1>', $line);
+	$line = preg_replace('#(<[^>]+?)style[\x00-\x20]*=[\x00-\x20]*[`\'"]*.*?s[\x00-\x20]*c[\x00-\x20]*r[\x00-\x20]*i[\x00-\x20]*p[\x00-\x20]*t[\x00-\x20]*:*[^>]*+>#iu', '$1>', $line);
+
+	$line = preg_replace('#</*\w+:\w[^>]*+>#i', '', $line);
 
 	do
 	{
-		$old_data = $data;
-		$data = preg_replace('#</*(?:applet|b(?:ase|gsound|link)|embed|frame(?:set)?|i(?:frame|layer)|l(?:ayer|ink)|meta|object|s(?:cript|tyle)|title|xml)[^>]*+>#i', '', $data);
+		$old_line = $line;
+		$line = preg_replace('#</*(?:applet|b(?:ase|gsound|link)|embed|frame(?:set)?|i(?:frame|layer)|l(?:ayer|ink)|meta|object|s(?:cript|tyle)|title|xml)[^>]*+>#i', '', $line);
 	}
-	while ($old_data !== $data);
+	while ($old_line !== $line);
 
-	return $data;
+	return $line;
 }
 
 function http_header($code)

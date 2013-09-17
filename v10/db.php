@@ -7,7 +7,7 @@ class Db
 	var $collection;
 	var $grid;
 	
-	public function __construct($database = default_database, $collection = default_collection)
+	public function __construct($collection = default_collection, $database = default_database)
 	{
 		try 
 		{
@@ -25,7 +25,19 @@ class Db
 			trigger_error("MongoDB error: $e->getMessage()", E_USER_ERROR);
 		}
 	}
+
+	public function timeToId($ts)
+	{
+	    $hexTs = dechex($ts);
+	    $hexTs = str_pad($hexTs, 8, "0", STR_PAD_LEFT);
+	    return new MongoId($hexTs."0000000000000000");
+	}
 	
+	public function all($sort = array()) 
+	{
+		return $this->get_all($sort);
+	}
+
 	public function get_all($sort = array()) 
 	{
 		if(array_mode)
@@ -47,6 +59,63 @@ class Db
 		}
 		return $this->collection->findOne(array('_id' => $id));
 	}
+
+	public function max_attr($attr)
+	{
+		$item = $this->collection->find()->sort(array($attr => -1))->limit(1);		
+		if(count($item) > 0)
+		{
+			$temp = iterator_to_array($item);
+			$values = array_pop($temp);
+			return $values[$attr];
+		}
+		else
+		{
+			return FALSE;
+		}
+	}
+
+	public function get_last($sort = array('_id' => -1))
+	{
+		$item = $this->collection->find()->sort($sort)->limit(1);
+		if(count($item) > 0)
+		{
+			$temp = iterator_to_array($item);
+			$values = array_pop($temp);
+			return $values;
+		}
+		else
+		{
+			return FALSE;
+		}
+	}
+
+	public function get_item($criteria = array())
+	{
+		$item = $this->collection->findOne($criteria);
+		if(count($item) > 0)
+		{
+			return $item;
+		}
+		else
+		{
+			return FALSE;
+		}
+	}
+
+	public function get_items($criteria = array(), $limit = false, $skip = 0, $sort = array('_id' => -1))
+	{				
+		$cursor = $this->collection->find($criteria)->skip($skip)->limit($limit);
+		$cursor->sort($sort);
+		if(array_mode)
+		{
+			return iterator_to_array($cursor);
+		}
+		else
+		{
+			return $cursor;
+		}
+	}
 	
 	public function get_count($criteria = array())
 	{
@@ -54,6 +123,7 @@ class Db
 		return $cursor->count();
 	}
 	
+	/*
 	public function run_query($criteria = array(), $skip = 0, $limit = false)
 	{
 		$cursor = $this->collection->find($criteria)->skip($skip)->limit($limit);
@@ -67,6 +137,7 @@ class Db
 			return $cursor;
 		}
 	}
+	*/
 	
 	public function get_binary($id)
 	{
@@ -82,7 +153,7 @@ class Db
 		}
 		else
 		{
-			return FALSE;
+			return FALSE;			
 		}
 	}
 	
@@ -105,8 +176,15 @@ class Db
 	
 	public function add($item)
 	{
-		$this->collection->insert($item);
-		return $item['_id'];
+		if(count($item) > 0)
+		{		
+			$this->collection->insert($item);	
+			return $item['_id'];
+		}
+		else
+		{
+			return FALSE;
+		}		
 	}
 	
 	public function update($id, $data)
@@ -120,6 +198,11 @@ class Db
 		{
 			return $this->collection->update(array("_id" => new MongoId($id)), $updates);	
 		}
+	}
+
+	public function clear()
+	{		
+		return $this->collection->remove(array(), array('w' => 1));
 	}
 	
 	public function delete($id)
